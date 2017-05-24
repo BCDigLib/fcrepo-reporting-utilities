@@ -12,13 +12,27 @@ print "Content-Type: text/html\n\n";
 
 my $config = Config::Tiny->new;
 $config = Config::Tiny->read('settings.config');
-my $ServerName = $config->{settings}->{ServerName};
-my $ServerPort = $config->{settings}->{ServerPort};
+my $serverName = $config->{settings}->{serverName};
+my $serverPort = $config->{settings}->{serverPort};
 my $fedoraContext = $config->{settings}->{fedoraContext};
-my $UserName = $config->{settings}->{UserName};
-my $PassWord = $config->{settings}->{PassWord};
+my $username = $config->{settings}->{username};
+my $password = $config->{settings}->{password};
+my $realm = $config->{settings}->{realm}; 
 
-my $fedoraURI = $ServerName . ":" . $ServerPort . "/" . $fedoraContext;
+my $fedoraURI = $serverName . ":" . $serverPort . "/" . $fedoraContext;
+
+# Handle authentication
+my $ua = LWP::UserAgent->new;
+$ua->credentials( $fedoraURI . "/" . "describe", $realm, $username, $password );
+print $ua;
+my $resp = $ua->get($fedoraURI);
+
+if ($resp->is_success) {
+    print $resp->decoded_content;
+} else {
+    print $resp->status_line;
+    print $resp->decoded_content;
+}
 
 my $file      = "header.html";
 my $headerDoc = do {
