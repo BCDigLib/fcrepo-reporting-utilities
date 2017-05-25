@@ -32,7 +32,8 @@ my $password = $config->{settings}->{password};
 my $fedoraURI = $server_name . ":" . $port . "/" . $fedora_context;
 
 ## calculate space used by collection PID
-my $collectionFoxml = qx(curl -s -u ${username}:$password -X GET "$fedoraURI/objects/$collectionPid/objectXML");      #print $collectionFoxml;
+my $collectionFoxml = qx(curl -s -u $username:$password -X GET "$fedoraURI/objects/$collectionPid/objectXML");
+#print $collectionFoxml;      # uncomment for debugging
 
 my $sizeCalc = q(
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -58,7 +59,7 @@ my $resultsCollection = $stylesheetCollection->transform($xmlCollection);
 my $outputCollection = $stylesheetCollection->output_string($resultsCollection);
 
 chomp $outputCollection;
-#print "$outputCollection\n";       # uncomment for verbose report
+print "$outputCollection\n";       # uncomment for verbose report
 my @runningTotal;
 push( @runningTotal, $outputCollection );
 
@@ -73,7 +74,7 @@ my $pidNumberCollectionSearchString = 'select $object from <#ri> where {{ $objec
   . '> . $object <fedora-rels-ext:isMemberOf> $book . }} order by $object ';
 my $pidNumberCollectionSearchStringEncode = uri_escape($pidNumberCollectionSearchString);
 my $query_uri = $fedoraURI . '/risearch?type=tuples&lang=sparql&format=CSV&dt=on&query=' .$pidNumberCollectionSearchStringEncode;
-my @pidNumberCollectionSearchStringEncodeCurlCommand = `curl -s '$query_uri'`;
+my @pidNumberCollectionSearchStringEncodeCurlCommand = `curl -s -u $username:$password '$query_uri'`;
 my @pidsInCollection;
 foreach my $line (@pidNumberCollectionSearchStringEncodeCurlCommand) {
     next if $line =~ m#^"object"#;
@@ -86,8 +87,9 @@ my @sortedPidsInCollection = sort { $a <=> $b; } @pidsInCollection;
 
 foreach my $line (@sortedPidsInCollection) {
     chomp $line;
-    my $pid = $nameSpace . ":" . $line; #    print "$pid\n";
-    my $foxml = qx(curl -s -u ${username}:$password -X GET "$fedoraURI/objects/$pid/objectXML");
+    my $pid = $nameSpace . ":" . $line;
+    #print $pid . "\n";      # uncomment for debugging
+    my $foxml = qx(curl -s -u $username:$password -X GET "$fedoraURI/objects/$pid/objectXML");
     my $xml_parser  = XML::LibXML->new;
     my $xslt_parser = XML::LibXSLT->new;
 
