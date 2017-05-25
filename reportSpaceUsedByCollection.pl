@@ -59,7 +59,7 @@ my $resultsCollection = $stylesheetCollection->transform($xmlCollection);
 my $outputCollection = $stylesheetCollection->output_string($resultsCollection);
 
 chomp $outputCollection;
-print "$outputCollection\n";       # uncomment for verbose report
+#print "$outputCollection\n";       # uncomment for verbose report
 my @runningTotal;
 push( @runningTotal, $outputCollection );
 
